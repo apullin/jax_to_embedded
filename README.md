@@ -43,7 +43,27 @@ cmake -S . -B build && cmake --build build --target runner
 
 ## Instructions - Embedded
 
-TODO - the plan here is to just run on qemu
+Sadly, this does not currently work. But I think it is just the entry/startup for qemu.
+
+Following embedded tradition, "host" means PC, and "target" means the non-pc device, in this case, a generic Cortex-M4
+microcontroller in a "bare metal" environment.
+
+Notably: This uses the same `main.c` and header that the host-side does!
+
+BUT:  
+- the compile and link works
+- looking at the `objdump -S module_0000.jit_quad_roots.ir-with-opt.o`, it looks like FPU instructions are emitted
+
+You will need `arm-none-eabi-gcc` on your `PATH`.
+
+CMSIS-5 is a submodule (it's large, since it include their whole NN and DSP library).
+
+```
+git submodule update --init --recursive
+cd cm4-qemu
+cmake -S . -B build && cmake --build build --target qemu
+./build/qemu/qemu
+```
 
 #### Don't other MLIR frameworks for embedded exist?
 
