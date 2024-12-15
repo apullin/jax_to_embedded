@@ -14,4 +14,4 @@ def quad_roots(a : float ,b : float ,c : float  ):
 jax_quad_roots = jax.jit(quad_roots)
 
 # Run the compiled function to force compilation
-result = jax_quad_roots( float(2), float(3), float(4) )
+result = jax_quad_roots( 2.0, 3.0, 4.0 )

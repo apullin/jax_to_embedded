@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.28)
 
 # This include will set up the toolchain for the embedded target; arm-gcc will be found from your system path
 include(cmake/arm-gcc.cmake)
@@ -7,13 +7,24 @@ project(cm4_qemu C ASM)
 
 set(CMAKE_C_STANDARD 11)
 
+# You'll need to download and unpack clang > 16,
+# e.g. https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8
+set(CLANG_PATH ~/clang+llvm-18.1.8-arm64-apple-macos11/bin/clang )
+
+get_filename_component(CLANG_PATH_ABS "${CLANG_PATH}" ABSOLUTE)
+
+# Check for clang > 16 , needed now that XLA generated IR using opaque pointers.
+# Notably, OSX only includes clang v14
+include( cmake/check-clang.cmake )
+
 ## Compile llvm ir file to an object, targeting cortex-m4; requires clang to be on PATH
 set( XLA_DUMP_DIR ${CMAKE_SOURCE_DIR}/../xla_dump )
 set( LLVM_IR_FILE ${XLA_DUMP_DIR}/module_0000.jit_quad_roots.ir-with-opt.ll )
 set( OBJ_FILE ${CMAKE_BINARY_DIR}/module_0000.jit_quad_roots.ir-with-opt.o )
+set( CLANG_OPTS -target arm-none-eabi -mcpu=cortex-m4 -mthumb -opaque-pointers )
 add_custom_command(
         OUTPUT ${OBJ_FILE}
-        COMMAND clang -target arm-none-eabi -mcpu=cortex-m4 -mthumb -c -o ${OBJ_FILE} ${LLVM_IR_FILE}
+        COMMAND ${CLANG_PATH_ABS} ${CLANG_OPTS} -c -o ${OBJ_FILE} ${LLVM_IR_FILE}
         DEPENDS ${LLVM_IR_FILE}
         COMMENT "Compiling ${LLVM_IR_FILE} to ${OBJ_FILE}"
 )
